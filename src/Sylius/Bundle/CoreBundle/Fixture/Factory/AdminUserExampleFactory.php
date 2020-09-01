@@ -27,7 +27,7 @@ class AdminUserExampleFactory extends AbstractExampleFactory implements ExampleF
     /** @var FactoryInterface */
     private $userFactory;
 
-    /** @var FactoryInterface */
+    /** @var FactoryInterface|null */
     private $avatarImageFactory;
 
     /** @var \Faker\Generator */
@@ -47,16 +47,16 @@ class AdminUserExampleFactory extends AbstractExampleFactory implements ExampleF
 
     public function __construct(
         FactoryInterface $userFactory,
-        FactoryInterface $avatarImageFactory,
         string $localeCode,
         ?FileLocatorInterface $fileLocator = null,
-        ?ImageUploaderInterface $imageUploader = null
+        ?ImageUploaderInterface $imageUploader = null,
+        ?FactoryInterface $avatarImageFactory = null
     ) {
         $this->userFactory = $userFactory;
-        $this->avatarImageFactory = $avatarImageFactory;
         $this->localeCode = $localeCode;
         $this->fileLocator = $fileLocator;
         $this->imageUploader = $imageUploader;
+        $this->avatarImageFactory = $avatarImageFactory;
 
         $this->faker = \Faker\Factory::create();
         $this->optionsResolver = new OptionsResolver();
@@ -130,7 +130,12 @@ class AdminUserExampleFactory extends AbstractExampleFactory implements ExampleF
         $uploadedImage = new UploadedFile($imagePath, basename($imagePath));
 
         /** @var AvatarImage $avatarImage */
-        $avatarImage = $this->avatarImageFactory->createNew();
+        if ($this->avatarImageFactory === null) {
+            $avatarImage = new AvatarImage();
+        } else {
+            $avatarImage = $this->avatarImageFactory->createNew();
+        }
+
         $avatarImage->setFile($uploadedImage);
 
         $this->imageUploader->upload($avatarImage);
